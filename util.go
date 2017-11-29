@@ -127,8 +127,8 @@ func (r *Run) JSONData(iface interface{}, dashboard string) {
 				r.panels <- Panel{
 					Title: replacer.Replace(title.(string)),
 					ID:    int64(id.(float64)),
-					URL: fmt.Sprintf("%s/render/dashboard/%s?panelId=%d&from=%d&to=%d&width=%d&height=%d&fullscreen&timeout=%d",
-						r.url, dashboard, int64(s["id"].(float64)), r.from, r.to, r.width, r.height, r.timeout),
+					URL: fmt.Sprintf("%s/render/dashboard/%s?panelId=%d&from=%d&to=%d&width=%d&height=%d&fullscreen&timeout=%d&tz=%s",
+						r.url, dashboard, int64(s["id"].(float64)), r.from, r.to, r.width, r.height, r.timeout, r.tz),
 				}
 			}
 
@@ -171,19 +171,14 @@ func (r *Run) PrefixWork() error {
 //GetRenderImages get redner images
 func (r *Run) GetRenderImages() {
 	for p := range r.panels {
-		select {
-		case <-r.ctx.Done():
-			return
-		default:
-			log.Infof("get %s render image...", p.Title)
-			data, err := r.XHttp("GET", p.URL, nil)
-			if err != nil {
-				log.Errorf("http get url %s render image error %v", p.URL, err)
-				continue
-			}
-			if err := r.SaveImage(p.Title, data); err != nil {
-				log.Errorf("write image file error %v", err)
-			}
+		log.Infof("get %s render image...", p.Title)
+		data, err := r.XHttp("GET", p.URL, nil)
+		if err != nil {
+			log.Errorf("http get url %s render image error %v", p.URL, err)
+			continue
+		}
+		if err := r.SaveImage(p.Title, data); err != nil {
+			log.Errorf("write image file error %v", err)
 		}
 
 	}

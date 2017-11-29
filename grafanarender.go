@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"github.com/ngaut/log"
 	"net/http"
@@ -19,13 +18,12 @@ type Run struct {
 	url        string
 	from       int64
 	to         int64
+	tz         string
 	width      int64
 	height     int64
 	timeout    int64
 	name       string
 	pngDir     string
-	ctx        context.Context
-	cancel     context.CancelFunc
 }
 
 var (
@@ -56,8 +54,7 @@ func main() {
 		log.Errorf("end time is error %v", err)
 		return
 	}
-
-	ctx, cancel := context.WithCancel(context.Background())
+	tz, _ := time.Now().Zone()
 
 	r := &Run{
 		client:     c,
@@ -68,12 +65,11 @@ func main() {
 		timeout:    *timeout,
 		from:       ft.UnixNano() / 1000000,
 		to:         et.UnixNano() / 1000000,
+		tz:         tz,
 		name:       strings.Replace(*name, " ", "_", -1),
 		User:       *user,
 		Password:   *password,
 		url:        *addr,
-		ctx:        ctx,
-		cancel:     cancel,
 	}
 
 	log.Infof("start...")
